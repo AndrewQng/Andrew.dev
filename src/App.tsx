@@ -57,16 +57,59 @@ const FlowingLinesBackground: React.FC = () => {
       };
     };
 
+    let time = 0;
+
+    const preRunSimulation = (steps: number) => {
+      for (let s = 0; s < steps; s++) {
+        ctx.globalCompositeOperation = 'destination-out';
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.018)';
+        ctx.fillRect(0, 0, width, height);
+        ctx.globalCompositeOperation = 'source-over';
+
+        time += 0.001;
+
+        fibers.forEach((fiber, index) => {
+          fiber.prevX = fiber.x;
+          fiber.prevY = fiber.y;
+
+          const angle = (
+            Math.sin(fiber.x * 0.002 + time * 2) * 1.2 + 
+            Math.cos(fiber.y * 0.003 - time) * 1.5
+          ) * Math.PI;
+
+          fiber.x += Math.cos(angle) * fiber.speed;
+          fiber.y += Math.sin(angle) * fiber.speed;
+
+          ctx.beginPath();
+          ctx.moveTo(fiber.prevX, fiber.prevY);
+          ctx.lineTo(fiber.x, fiber.y);
+          ctx.strokeStyle = fiber.color;
+          ctx.lineWidth = fiber.lineWidth;
+          ctx.lineCap = 'round';
+          ctx.stroke();
+
+          const margin = 30;
+          if (
+            fiber.x < -margin ||
+            fiber.x > width + margin ||
+            fiber.y < -margin ||
+            fiber.y > height + margin
+          ) {
+            fibers[index] = createFiber(true); // respawn randomly during pre-run
+          }
+        });
+      }
+    };
+
     const initFibers = () => {
       fibers = [];
       for (let i = 0; i < numFibers; i++) {
         fibers.push(createFiber(true));
       }
+      preRunSimulation(180); // pre-simulate 180 frames so the lines are already drawn on start
     };
 
     initFibers();
-
-    let time = 0;
     let isVisible = false;
 
     const render = () => {
