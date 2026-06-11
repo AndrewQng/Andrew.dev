@@ -219,9 +219,7 @@ const UserIcon = () => (
   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
 );
 
-const TerminalIcon = () => (
-  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="4 17 10 11 4 5"></polyline><line x1="12" y1="19" x2="20" y2="19"></line></svg>
-);
+
 
 const GamepadIcon = () => (
   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="6" y1="12" x2="10" y2="12"></line><line x1="8" y1="10" x2="8" y2="14"></line><line x1="15" y1="13" x2="15.01" y2="13"></line><line x1="18" y1="11" x2="18.01" y2="11"></line><rect x="2" y="6" width="20" height="12" rx="3"></rect></svg>
@@ -251,76 +249,9 @@ function App() {
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
-  // Game Play Zone toggles
-  const [activeTab, setActiveTab] = useState<'clicker' | 'unity'>('clicker');
+
   
-  // Clicker Game State
-  const [loc, setLoc] = useState(0);
-  const [compiledProjects, setCompiledProjects] = useState(0);
-  const [aiCopilots, setAiCopilots] = useState(0);
-  const [clickPower, setClickPower] = useState(1);
-  const [developerLevel, setDeveloperLevel] = useState("Junior Intern");
-  const [gameLogs, setGameLogs] = useState<string[]>([
-    "System initialized. Welcome to the Cyber Clicker...",
-    "Objective: Compile Lines of Code (LOC) and hire AI Copilots to automate writing code."
-  ]);
 
-  const addLog = (msg: string) => {
-    setGameLogs(prev => [msg, ...prev.slice(0, 7)]);
-  };
-
-  const handleCompileCode = () => {
-    const locEarned = clickPower;
-    setLoc(prev => prev + locEarned);
-    addLog(`+${locEarned} LOC compiled successfully.`);
-  };
-
-  const handleBuyCopilot = () => {
-    const cost = Math.floor(10 + Math.pow(1.5, aiCopilots) * 10);
-    if (loc >= cost) {
-      setLoc(prev => prev - cost);
-      setAiCopilots(prev => prev + 1);
-      addLog(`Hired AI Copilot! Cost: ${cost} LOC. Passive production +5 LOC/sec.`);
-    } else {
-      addLog(`Not enough LOC! Need ${cost} LOC to hire AI Copilot.`);
-    }
-  };
-
-  // Passive production loop
-  useEffect(() => {
-    if (aiCopilots === 0) return;
-    const interval = setInterval(() => {
-      setLoc(prev => prev + aiCopilots * 5);
-    }, 1000);
-    return () => clearInterval(interval);
-  }, [aiCopilots]);
-
-  // Dev Level updates
-  useEffect(() => {
-    if (loc >= 10000) {
-      setDeveloperLevel("Senior Software Architect");
-      setClickPower(10);
-    } else if (loc >= 2000) {
-      setDeveloperLevel("Backend Developer");
-      setClickPower(5);
-    } else if (loc >= 200) {
-      setDeveloperLevel("Advanced Intern");
-      setClickPower(2);
-    } else {
-      setDeveloperLevel("Junior Intern");
-      setClickPower(1);
-    }
-  }, [loc]);
-
-  const handleManualCompileProject = () => {
-    if (loc >= 100) {
-      setLoc(prev => prev - 100);
-      setCompiledProjects(prev => prev + 1);
-      addLog("Successfully shipped a Web Monolith Project! (+1 Project)");
-    } else {
-      addLog("Needs at least 100 LOC to ship a project.");
-    }
-  };
 
   // Typewriter animation logic
   useEffect(() => {
@@ -619,112 +550,28 @@ function App() {
               <p className="fallback-note">Vui lòng truy cập trang web bằng máy tính (Desktop/Laptop) để trải nghiệm trò chơi!</p>
             </div>
           ) : (
-            <>
-              {/* Tabs header */}
-              <div className="play-tabs">
-                <button 
-                  className={`tab-btn ${activeTab === 'clicker' ? 'active' : ''}`}
-                  onClick={() => setActiveTab('clicker')}
-                >
-                  <TerminalIcon /> React Cyber Clicker (Demo có sẵn)
-                </button>
-                <button 
-                  className={`tab-btn ${activeTab === 'unity' ? 'active' : ''}`}
-                  onClick={() => setActiveTab('unity')}
-                >
-                  <GamepadIcon /> Game Unity WebGL (Nơi upload game)
-                </button>
-              </div>
-
-              {/* Console Area */}
-              <div className="console-display">
-                {activeTab === 'clicker' ? (
-                  <div className="clicker-game-screen">
-                    <div className="clicker-header">
-                      <div className="terminal-dots">
-                        <span className="dot-red"></span>
-                        <span className="dot-yellow"></span>
-                        <span className="dot-green"></span>
-                      </div>
-                      <span className="console-title">CYBER_CODE_CLICKER.EXE</span>
-                      <span className="dev-rank">Cấp độ: {developerLevel}</span>
-                    </div>
-
-                    <div className="clicker-stats-grid">
-                      <div className="stat-box">
-                        <span className="stat-label">Lines of Code (LOC)</span>
-                        <span className="stat-val glow-text">{loc}</span>
-                      </div>
-                      <div className="stat-box">
-                        <span className="stat-label">AI Copilots</span>
-                        <span className="stat-val">{aiCopilots}</span>
-                      </div>
-                      <div className="stat-box">
-                        <span className="stat-label">Code / Click</span>
-                        <span className="stat-val">{clickPower} LOC</span>
-                      </div>
-                      <div className="stat-box">
-                        <span className="stat-label">Shipped Projects</span>
-                        <span className="stat-val glow-text-primary">{compiledProjects}</span>
-                      </div>
-                    </div>
-
-                    <div className="clicker-actions">
-                      <button className="btn-primary click-btn" onClick={handleCompileCode}>
-                        💻 COMPILE LINES OF CODE
-                      </button>
-                      <button className="btn-secondary" onClick={handleBuyCopilot}>
-                        🤖 Thuê AI Copilot (Giá: {Math.floor(10 + Math.pow(1.5, aiCopilots) * 10)} LOC)
-                      </button>
-                      <button className="btn-secondary" onClick={handleManualCompileProject}>
-                        🚀 Gửi Dự Án (Giá: 100 LOC)
-                      </button>
-                    </div>
-
-                    <div className="clicker-terminal">
-                      <div className="terminal-header">Nhật ký Biên dịch (Console Logs):</div>
-                      <div className="terminal-body">
-                        {gameLogs.map((log, index) => (
-                          <div key={index} className="log-line">
-                            <span className="log-prefix">&gt;</span> {log}
-                          </div>
-                        ))}
-                      </div>
+            <div className="console-display" style={{ minHeight: '520px' }}>
+              <div className="unity-iframe-screen">
+                {/* Check if game is uploaded, else show mock UI / instructions */}
+                <div className="iframe-wrapper">
+                  <iframe 
+                    src="./unity-games/index.html" 
+                    title="Unity WebGL Game"
+                    className="unity-iframe"
+                    onError={() => console.log('Iframe failed to load')}
+                  />
+                  {/* Overlay instructions in case game doesn't exist yet */}
+                  <div className="unity-fallback-overlay">
+                    <div className="fallback-content">
+                      <GamepadIcon />
+                      <h3>KHU VỰC CHỜ GAME UNITY</h3>
+                      <p>Hiện tại chưa có game WebGL nào được upload lên website.</p>
+                      
                     </div>
                   </div>
-                ) : (
-                  <div className="unity-iframe-screen">
-                    {/* Check if game is uploaded, else show mock UI / instructions */}
-                    <div className="iframe-wrapper">
-                      <iframe 
-                        src="./unity-games/index.html" 
-                        title="Unity WebGL Game"
-                        className="unity-iframe"
-                        onError={() => console.log('Iframe failed to load')}
-                      />
-                      {/* Overlay instructions in case game doesn't exist yet */}
-                      <div className="unity-fallback-overlay">
-                        <div className="fallback-content">
-                          <GamepadIcon />
-                          <h3>KHU VỰC CHỜ GAME UNITY</h3>
-                          <p>Hiện tại chưa có game WebGL nào được upload lên website.</p>
-                          
-                          <div className="instructions-card">
-                            <h4>Hướng dẫn tải game lên dành cho Bạn:</h4>
-                            <ol>
-                              <li>Build game Unity dưới dạng <strong>WebGL</strong>.</li>
-                              <li>Tạo một thư mục trong project tại đường dẫn: <code>public/unity-games/</code>.</li>
-                              <li>Copy toàn bộ file build (bao gồm file <code>index.html</code> và các thư mục <code>Build</code>, <code>TemplateData</code>) vào thư mục đó.</li>
-                              <li>File game sẽ tự động được hiển thị tại khung này mà không cần build lại code website!</li>
-                            </ol>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                )}
+                </div>
               </div>
-            </>
+            </div>
           )}
         </div>
       </section>
