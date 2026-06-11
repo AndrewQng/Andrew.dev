@@ -154,7 +154,7 @@ const FlowingLinesBackground: React.FC = () => {
           fiber.y < -margin ||
           fiber.y > height + margin
         ) {
-          fibers[index] = createFiber(false);
+          fibers[index] = createFiber(true);
         }
       });
 
@@ -700,6 +700,13 @@ const UserIcon = () => (
   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
 );
 
+const GenderIcon = () => (
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <circle cx="10" cy="14" r="5" />
+    <path d="M14 10l8-8M16 2h6v6" />
+  </svg>
+);
+
 
 
 const GamepadIcon = () => (
@@ -762,21 +769,7 @@ function App() {
     return () => clearTimeout(timer);
   }, [roleText, isDeleting, roleIndex]);
 
-  // Simple contact form submit handler
-  const [formData, setFormData] = useState({ name: '', email: '', message: '' });
-  const [formSubmitted, setFormSubmitted] = useState(false);
 
-  const handleFormChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
-  };
-
-  const handleFormSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    console.log("Contact form submitted:", formData);
-    setFormSubmitted(true);
-    setFormData({ name: '', email: '', message: '' });
-    setTimeout(() => setFormSubmitted(false), 5000);
-  };
   return (
     <div className="app-container">
       {/* Navigation Bar */}
@@ -791,7 +784,6 @@ function App() {
             <a href="#skills">Kỹ năng</a>
             <a href="#projects">Dự án</a>
             <a href="#play-zone">Play Zone</a>
-            <a href="#contact">Liên hệ</a>
           </nav>
           <div className="nav-actions">
             <a href="https://github.com/AndrewQng" target="_blank" rel="noopener noreferrer" className="github-btn-nav">
@@ -844,6 +836,13 @@ function App() {
             <h3 className="panel-title">Thông tin cá nhân</h3>
             <ul className="info-list">
               <li>
+                <UserIcon />
+                <div>
+                  <strong>Họ và tên:</strong>
+                  <span>Nguyễn Mạnh Quyền</span>
+                </div>
+              </li>
+              <li>
                 <CalendarIcon />
                 <div>
                   <strong>Ngày sinh:</strong>
@@ -851,7 +850,7 @@ function App() {
                 </div>
               </li>
               <li>
-                <UserIcon />
+                <GenderIcon />
                 <div>
                   <strong>Giới tính:</strong>
                   <span>Nam</span>
@@ -1064,103 +1063,10 @@ function App() {
         </div>
       </section>
 
-      {/* Contact Section */}
-      <section id="contact" className="section contact-section">
-        <h2 className="section-title"><span>05.</span> Liên hệ công việc</h2>
-        <div className="grid-2">
-          <div className="contact-details glass-panel">
-            <h3>Hãy cùng tạo nên những sản phẩm tuyệt vời!</h3>
-            <p className="contact-pitch">
-              Tôi hiện đang tìm kiếm cơ hội thực tập sinh (Intern) vị trí Backend Developer hoặc Fullstack Developer. 
-              Nếu bạn có dự án phù hợp, hãy gửi lời nhắn hoặc liên hệ trực tiếp với tôi qua các kênh bên cạnh.
-            </p>
-            
-            <div className="contact-cards-stack">
-              <div className="contact-info-card">
-                <div className="contact-card-icon"><MailIcon /></div>
-                <div>
-                  <h4>Gửi Email trực tiếp</h4>
-                  <a href="mailto:nguyenquyenforwork@gmail.com" className="glow-text-primary">nguyenquyenforwork@gmail.com</a>
-                </div>
-              </div>
-
-              <div className="contact-info-card">
-                <div className="contact-card-icon"><PhoneIcon /></div>
-                <div>
-                  <h4>Số điện thoại</h4>
-                  <span>0962 489 069</span>
-                </div>
-              </div>
-
-              <div className="contact-info-card">
-                <div className="contact-card-icon"><LinkedinIcon /></div>
-                <div>
-                  <h4>Kết nối mạng xã hội</h4>
-                  <a href="https://www.linkedin.com/in/nguyenquyenwork/" target="_blank" rel="noopener noreferrer" className="glow-text-primary">
-                    linkedin.com/in/nguyenquyenwork
-                  </a>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div className="contact-form-panel glass-panel">
-            <h3 className="panel-title">Gửi tin nhắn nhanh</h3>
-            {formSubmitted ? (
-              <div className="form-success-message">
-                <span className="success-icon">✓</span>
-                <h4>Cảm ơn bạn đã liên hệ!</h4>
-                <p>Tin nhắn của bạn đã được gửi thành công (đã ghi log hệ thống). Tôi sẽ phản hồi lại sớm nhất có thể.</p>
-              </div>
-            ) : (
-              <form onSubmit={handleFormSubmit} className="contact-form">
-                <div className="form-group">
-                  <label htmlFor="name">Họ và Tên</label>
-                  <input 
-                    type="text" 
-                    id="name" 
-                    name="name" 
-                    required 
-                    value={formData.name}
-                    onChange={handleFormChange}
-                    placeholder="Ví dụ: Nguyễn Văn A" 
-                  />
-                </div>
-                <div className="form-group">
-                  <label htmlFor="email">Địa chỉ Email</label>
-                  <input 
-                    type="email" 
-                    id="email" 
-                    name="email" 
-                    required 
-                    value={formData.email}
-                    onChange={handleFormChange}
-                    placeholder="example@gmail.com" 
-                  />
-                </div>
-                <div className="form-group">
-                  <label htmlFor="message">Nội dung tin nhắn</label>
-                  <textarea 
-                    id="message" 
-                    name="message" 
-                    rows={4} 
-                    required 
-                    value={formData.message}
-                    onChange={handleFormChange}
-                    placeholder="Nhập nội dung bạn muốn trao đổi..." 
-                  />
-                </div>
-                <button type="submit" className="btn-primary submit-btn">Gửi Lời Nhắn</button>
-              </form>
-            )}
-          </div>
-        </div>
-      </section>
-
       {/* Footer */}
       <footer className="footer">
         <div className="footer-content">
-          <p>© 2026 Nguyễn Mạnh Quyền. Thiết kế & Phát triển với React & Vite.</p>
+          <p>© 2026 Nguyễn Mạnh Quyền.</p>
           <div className="footer-links">
             <a href="https://github.com/AndrewQng" target="_blank" rel="noopener noreferrer"><GithubIcon /></a>
             <a href="https://www.linkedin.com/in/nguyenquyenwork/" target="_blank" rel="noopener noreferrer"><LinkedinIcon /></a>
