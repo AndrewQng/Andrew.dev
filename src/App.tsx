@@ -328,7 +328,7 @@ function App() {
           <CodeLogoIcon size={64} strokeWidth={1.5} style={{ marginBottom: '24px' }} />
           <span className="welcome-tag">XIN CHÀO, TÔI LÀ NGUYỄN MẠNH QUYỀN</span>
           <h1 className="name-title">
-            Sinh viên <span className="highlight-coral">Backend Intern</span>,<br />
+            Sinh viên <span className="highlight-coral">IT</span>,<br />
             đam mê <span className="highlight-cyan">AI & Unity</span>.
           </h1>
           <div className="role-container">
