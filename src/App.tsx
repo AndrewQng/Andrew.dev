@@ -26,58 +26,34 @@ const FlowingLinesBackground: React.FC = () => {
     interface Fiber {
       x: number;
       y: number;
-      angle: number;
+      prevX: number;
+      prevY: number;
       speed: number;
-      history: { x: number; y: number }[];
-      maxHistory: number;
-      opacity: number;
+      color: string;
       lineWidth: number;
-      turnSpeed: number;
     }
 
     let fibers: Fiber[] = [];
-    const numFibers = 120; // Richer density of strands
+    const numFibers = 220; // Increased density for more visible flow field lines
 
     const createFiber = (randomizePosition = true): Fiber => {
-      let x = 0;
-      let y = 0;
-      let angle = Math.random() * Math.PI * 2;
+      let x = randomizePosition ? Math.random() * width : -20;
+      let y = Math.random() * height;
 
-      if (randomizePosition) {
-        x = Math.random() * width;
-        y = Math.random() * height;
-      } else {
-        // Spawn on random edges for continuous flow
-        const edge = Math.floor(Math.random() * 4);
-        if (edge === 0) { // left
-          x = -30;
-          y = Math.random() * height;
-          angle = (Math.random() - 0.5) * Math.PI * 0.5;
-        } else if (edge === 1) { // right
-          x = width + 30;
-          y = Math.random() * height;
-          angle = Math.PI + (Math.random() - 0.5) * Math.PI * 0.5;
-        } else if (edge === 2) { // top
-          x = Math.random() * width;
-          y = -30;
-          angle = Math.PI * 0.5 + (Math.random() - 0.5) * Math.PI * 0.5;
-        } else { // bottom
-          x = Math.random() * width;
-          y = height + 30;
-          angle = -Math.PI * 0.5 + (Math.random() - 0.5) * Math.PI * 0.5;
-        }
-      }
+      // Color scheme matching Odysseus landing page (with enhanced opacity and vibrancy)
+      const isCoral = Math.random() < 0.15;
+      const color = isCoral
+        ? `rgba(240, 124, 124, ${0.12 + Math.random() * 0.15})` // vibrant coral
+        : `rgba(100, 165, 150, ${0.08 + Math.random() * 0.14})`; // vibrant slate-teal
 
       return {
         x,
         y,
-        angle,
-        speed: 0.8 + Math.random() * 1.6,
-        history: [{ x, y }],
-        maxHistory: 15 + Math.floor(Math.random() * 25), // trail length (15 to 40)
-        opacity: 0.05 + Math.random() * 0.18, // random opacity for depth
-        lineWidth: 0.6 + Math.random() * 1.0,
-        turnSpeed: 0.01 + Math.random() * 0.035 // slow turning rate for elegant curves
+        prevX: x,
+        prevY: y,
+        speed: 0.4 + Math.random() * 0.8, // slow flowing movement
+        color,
+        lineWidth: 0.6 + Math.random() * 1.0, // slightly thicker lines for visibility
       };
     };
 
@@ -90,50 +66,45 @@ const FlowingLinesBackground: React.FC = () => {
 
     initFibers();
 
+    let time = 0;
+    let isVisible = false;
+
     const render = () => {
-      // Semi-transparent clearing for a subtle motion trail (if desired, but clearRect is cleaner for pure CSS overlay)
-      ctx.clearRect(0, 0, width, height);
+      if (!isVisible) return;
+
+      // Very slow fade to build up a high-density flowing vector field texture over time
+      ctx.globalCompositeOperation = 'destination-out';
+      ctx.fillStyle = 'rgba(0, 0, 0, 0.018)'; // slightly faster fade to keep paths sharp and clear
+      ctx.fillRect(0, 0, width, height);
+      ctx.globalCompositeOperation = 'source-over';
+
+      time += 0.001; // Flow field animation tick speed
 
       fibers.forEach((fiber, index) => {
-        // Update position
-        fiber.x += Math.cos(fiber.angle) * fiber.speed;
-        fiber.y += Math.sin(fiber.angle) * fiber.speed;
+        fiber.prevX = fiber.x;
+        fiber.prevY = fiber.y;
 
-        // Wander the angle smoothly
-        fiber.angle += (Math.random() - 0.5) * fiber.turnSpeed;
+        // Flow field vector math:
+        // Combined overlapping wave frequencies to create curved wind/hair currents
+        const angle = (
+          Math.sin(fiber.x * 0.002 + time * 2) * 1.2 + 
+          Math.cos(fiber.y * 0.003 - time) * 1.5
+        ) * Math.PI;
 
-        // Add history point
-        fiber.history.push({ x: fiber.x, y: fiber.y });
-        if (fiber.history.length > fiber.maxHistory) {
-          fiber.history.shift();
-        }
+        fiber.x += Math.cos(angle) * fiber.speed;
+        fiber.y += Math.sin(angle) * fiber.speed;
 
-        // Draw trail with gradient opacity
-        const len = fiber.history.length;
-        if (len > 1) {
-          for (let j = 1; j < len; j++) {
-            const p1 = fiber.history[j - 1];
-            const p2 = fiber.history[j];
-            const ratio = j / len;
-
-            ctx.beginPath();
-            ctx.moveTo(p1.x, p1.y);
-            ctx.lineTo(p2.x, p2.y);
-            ctx.strokeStyle = `rgba(255, 255, 255, ${ratio * fiber.opacity})`;
-            ctx.lineWidth = ratio * fiber.lineWidth;
-            ctx.lineCap = 'round';
-            ctx.stroke();
-          }
-        }
-
-        // Draw glowing head point
+        // Draw the segment
         ctx.beginPath();
-        ctx.arc(fiber.x, fiber.y, fiber.lineWidth * 1.5, 0, Math.PI * 2);
-        ctx.fillStyle = `rgba(255, 255, 255, ${Math.min(1.0, fiber.opacity * 3.5)})`;
-        ctx.fill();
+        ctx.moveTo(fiber.prevX, fiber.prevY);
+        ctx.lineTo(fiber.x, fiber.y);
+        ctx.strokeStyle = fiber.color;
+        ctx.lineWidth = fiber.lineWidth;
+        ctx.lineCap = 'round';
+        ctx.stroke();
 
         // Respawn if went out of bounds
-        const margin = 50;
+        const margin = 30;
         if (
           fiber.x < -margin ||
           fiber.x > width + margin ||
@@ -147,11 +118,25 @@ const FlowingLinesBackground: React.FC = () => {
       animationFrameId = requestAnimationFrame(render);
     };
 
-    render();
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        const wasVisible = isVisible;
+        isVisible = entry.isIntersecting;
+        if (isVisible && !wasVisible) {
+          render();
+        } else if (!isVisible) {
+          cancelAnimationFrame(animationFrameId);
+        }
+      },
+      { threshold: 0.01 }
+    );
+
+    observer.observe(canvas);
 
     return () => {
       window.removeEventListener('resize', handleResize);
       cancelAnimationFrame(animationFrameId);
+      observer.disconnect();
     };
   }, []);
 
@@ -197,7 +182,11 @@ const HalftoneWaveBackground: React.FC = () => {
     const levels = 5; // Halftone size levels
     let time = 0;
 
+    let isVisible = false;
+
     const render = () => {
+      if (!isVisible) return;
+
       ctx.clearRect(0, 0, width, height);
 
       const cols = Math.ceil(width / spacing) + 1;
@@ -251,11 +240,25 @@ const HalftoneWaveBackground: React.FC = () => {
       animationFrameId = requestAnimationFrame(render);
     };
 
-    render();
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        const wasVisible = isVisible;
+        isVisible = entry.isIntersecting;
+        if (isVisible && !wasVisible) {
+          render();
+        } else if (!isVisible) {
+          cancelAnimationFrame(animationFrameId);
+        }
+      },
+      { threshold: 0.01 }
+    );
+
+    observer.observe(canvas);
 
     return () => {
       window.removeEventListener('resize', handleResize);
       cancelAnimationFrame(animationFrameId);
+      observer.disconnect();
     };
   }, []);
 
@@ -275,22 +278,354 @@ const HalftoneWaveBackground: React.FC = () => {
   );
 };
 
+// Floating Code Snippets Background Component for Projects section (Typewriter & Continuous Scroll Simulator)
+const FloatingCodeBackground: React.FC = () => {
+  const canvasRef = useRef<HTMLCanvasElement | null>(null);
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    let animationFrameId: number;
+    let width = (canvas.width = canvas.parentElement?.clientWidth || window.innerWidth);
+    let height = (canvas.height = canvas.parentElement?.clientHeight || window.innerHeight);
+
+    const handleResize = () => {
+      if (!canvas) return;
+      width = canvas.width = canvas.parentElement?.clientWidth || window.innerWidth;
+      height = canvas.height = canvas.parentElement?.clientHeight || window.innerHeight;
+    };
+    window.addEventListener('resize', handleResize);
+
+    const codeFiles = [
+      {
+        name: "ProductService.java",
+        lines: [
+          "@Service",
+          "@Slf4j",
+          "public class ProductService implements IProductService {",
+          "  @Autowired",
+          "  private ProductRepository repo;",
+          "  @Autowired",
+          "  private CacheManager cacheManager;",
+          "  ",
+          "  @Transactional",
+          "  public Product save(Product p) {",
+          "    log.info(\"Saving product to DB: \" + p.getName());",
+          "    Product saved = repo.save(p);",
+          "    cacheManager.evict(\"products\", saved.getId());",
+          "    return saved;",
+          "  }",
+          "  public List<Product> findAll() {",
+          "    return repo.findAllActive();",
+          "  }",
+          "}"
+        ]
+      },
+      {
+        name: "PlayerController.cs",
+        lines: [
+          "using UnityEngine;",
+          "using System.Collections;",
+          "",
+          "public class PlayerController : MonoBehaviour {",
+          "  public float speed = 8.5f;",
+          "  public float jumpForce = 12.0f;",
+          "  private Rigidbody2D rb;",
+          "  private bool isGrounded;",
+          "  ",
+          "  void Start() {",
+          "    rb = GetComponent<Rigidbody2D>();",
+          "  }",
+          "  void Update() {",
+          "    float move = Input.GetAxisRaw(\"Horizontal\");",
+          "    rb.velocity = new Vector2(move * speed, rb.velocity.y);",
+          "    ",
+          "    if (Input.GetButtonDown(\"Jump\") && isGrounded) {",
+          "      rb.AddForce(Vector2.up * jumpForce, ForceMode2D.Impulse);",
+          "    }",
+          "  }",
+          "}"
+        ]
+      },
+      {
+        name: "ai_agent.py",
+        lines: [
+          "from langchain_google_genai import ChatGoogleGenerativeAI",
+          "from langchain.agents import AgentExecutor",
+          "from agent_tools import WebSearch, DatabaseQuery",
+          "import os",
+          "",
+          "llm = ChatGoogleGenerativeAI(model=\"gemini-1.5-flash\", temperature=0.3)",
+          "tools = [WebSearch(), DatabaseQuery()]",
+          "agent = create_openai_tools_agent(llm, tools)",
+          "executor = AgentExecutor(agent=agent, tools=tools, verbose=True)",
+          "",
+          "async def handle_user_query(user_input):",
+          "    result = await executor.ainvoke({\"input\": user_input})",
+          "    return result[\"output\"]"
+        ]
+      },
+      {
+        name: "ChatBot.tsx",
+        lines: [
+          "import React, { useState, useEffect, useRef } from 'react';",
+          "import { api } from './services/api';",
+          "",
+          "export const ChatBot: React.FC = () => {",
+          "  const [messages, setMessages] = useState<Msg[]>([]);",
+          "  const scrollRef = useRef<HTMLDivElement>(null);",
+          "  ",
+          "  const sendMessage = async (text: string) => {",
+          "    if (!text.trim()) return;",
+          "    const userMsg = { id: Date.now(), text, sender: 'user' };",
+          "    setMessages(prev => [...prev, userMsg]);",
+          "    const res = await api.post(\"/chat\", { text });",
+          "    setMessages(prev => [...prev, res.data]);",
+          "  };",
+          "  return <ChatWindow messages={messages} onSend={sendMessage} ref={scrollRef} />;",
+          "};"
+        ]
+      }
+    ];
+
+    interface Editor {
+      relX: number;
+      relY: number;
+      fileIndex: number;
+      currentLineIndex: number;
+      currentCharIndex: number;
+      typedLines: string[];
+      typingSpeed: number; // frames per action
+      frameCounter: number;
+      isDelaying: boolean;
+      delayCounter: number;
+      delayLimit: number;
+      color: string;
+      offsetY: number;
+    }
+
+    // Function to pre-load a segment of lines from a file
+    const createPreloadedLines = (fileIndex: number, lineCount: number): string[] => {
+      const file = codeFiles[fileIndex];
+      return file.lines.slice(0, Math.min(file.lines.length, lineCount));
+    };
+
+    // Two column layout strictly framing the center content (Left and Right)
+    let editors: Editor[] = [
+      {
+        relX: 0.02, // 2% from Left edge
+        relY: 0.12,
+        fileIndex: 0,
+        currentLineIndex: 9, // Start typing from line 10
+        currentCharIndex: 0,
+        typedLines: createPreloadedLines(0, 9), // pre-load first 9 lines
+        typingSpeed: 1, // hyper active frame rate
+        frameCounter: 0,
+        isDelaying: false,
+        delayCounter: 0,
+        delayLimit: 0,
+        color: 'rgba(158, 229, 232, 0.035)', // Teal (dimmed opacity for elegance)
+        offsetY: 0
+      },
+      {
+        relX: 0.74, // 74% from Left edge (Right side)
+        relY: 0.12,
+        fileIndex: 1,
+        currentLineIndex: 9, // Start typing from line 10
+        currentCharIndex: 0,
+        typedLines: createPreloadedLines(1, 9), // pre-load first 9 lines
+        typingSpeed: 1,
+        frameCounter: 0,
+        isDelaying: false,
+        delayCounter: 0,
+        delayLimit: 0,
+        color: 'rgba(240, 124, 124, 0.038)', // Coral (dimmed opacity for elegance)
+        offsetY: 0
+      }
+    ];
+
+    let cursorBlink = true;
+    let cursorCounter = 0;
+    let isVisible = false;
+
+    const render = () => {
+      if (!isVisible) return;
+
+      ctx.clearRect(0, 0, width, height);
+      const lineHeight = 21;
+
+      // Handle cursor blink
+      cursorCounter++;
+      if (cursorCounter >= 25) {
+        cursorBlink = !cursorBlink;
+        cursorCounter = 0;
+      }
+
+      editors.forEach((editor, idx) => {
+        // Hide right-side column on mobile viewports to prevent overlapping with content
+        if (width < 950 && idx === 1) return;
+
+        const file = codeFiles[editor.fileIndex];
+        
+        // Update typing logic
+        if (editor.isDelaying) {
+          editor.delayCounter++;
+          if (editor.delayCounter >= editor.delayLimit) {
+            editor.isDelaying = false;
+            editor.delayCounter = 0;
+            
+            // If file fully typed, load another random one continuously (without clearing screen history!)
+            if (editor.currentLineIndex >= file.lines.length) {
+              editor.fileIndex = (editor.fileIndex + 1) % codeFiles.length;
+              editor.currentLineIndex = 0;
+              editor.currentCharIndex = 0;
+              // Do NOT clear editor.typedLines so scrolling is uninterrupted!
+            }
+          }
+        } else {
+          editor.frameCounter++;
+          if (editor.frameCounter >= editor.typingSpeed) {
+            editor.frameCounter = 0;
+            const currentLine = file.lines[editor.currentLineIndex];
+
+            if (editor.currentCharIndex < currentLine.length) {
+              // Type 2-3 characters at a time for hyper-speed typing
+              const charsToType = Math.min(
+                currentLine.length - editor.currentCharIndex,
+                Math.floor(Math.random() * 2) + 2
+              );
+              editor.currentCharIndex += charsToType;
+            } else {
+              // Finish typing current line -> Add it and Go down (xuống dòng)
+              editor.typedLines.push(currentLine);
+              if (editor.typedLines.length > 20) {
+                editor.typedLines.shift(); // keep memory clean
+              }
+              
+              // Set scroll offset to translate text down, then we will lerp it back to 0
+              editor.offsetY = lineHeight;
+
+              editor.currentLineIndex++;
+              editor.currentCharIndex = 0;
+              editor.isDelaying = true;
+              editor.delayCounter = 0;
+
+              // Check if file finished
+              if (editor.currentLineIndex >= file.lines.length) {
+                editor.delayLimit = 35; // short pause at end of file (about 0.5s) to avoid noticeable delays
+              } else {
+                editor.delayLimit = 2; // virtually instant pause on Newline (30ms) for continuous flow
+              }
+            }
+          }
+        }
+
+        // Interpolate smooth scroll Y offset continuously (lerp to 0)
+        editor.offsetY += (0 - editor.offsetY) * 0.08;
+
+        // Position coordinates
+        let startX = editor.relX * width;
+        let startY = editor.relY * height;
+        const boxWidth = width < 1200 ? 240 : 320;
+        const boxHeight = height * 0.72;
+        const bottomY = startY + boxHeight;
+
+        // On mobile, position Editor 0 centered and more faded
+        if (width < 950) {
+          startX = 0.05 * width;
+          startY = 0.12 * height;
+        }
+
+        ctx.font = "500 14px 'JetBrains Mono', monospace";
+
+        // Draw virtual tab file header (Static - does not scroll)
+        ctx.fillStyle = editor.color.replace('0.035', '0.095').replace('0.038', '0.098');
+        ctx.fillText(`/* ${file.name} */`, startX, startY);
+
+        // Apply Clipping Mask
+        ctx.save();
+        ctx.beginPath();
+        // Safe rect starting below the header tab and extending slightly below bottomY for entrance animation
+        ctx.rect(startX - 10, startY + lineHeight * 0.6, boxWidth + 20, boxHeight + 30);
+        ctx.clip();
+
+        // Draw active typing line at the very bottom, offset downwards by editor.offsetY
+        if (editor.currentLineIndex < file.lines.length) {
+          const typedText = file.lines[editor.currentLineIndex].substring(0, editor.currentCharIndex);
+          const cursor = cursorBlink ? " |" : "  ";
+          ctx.fillText(typedText + cursor, startX, bottomY + editor.offsetY);
+        }
+
+        // Draw fully typed lines going upwards from the active line
+        let currentY = bottomY - lineHeight + editor.offsetY;
+        for (let i = editor.typedLines.length - 1; i >= 0; i--) {
+          ctx.fillText(editor.typedLines[i], startX, currentY);
+          currentY -= lineHeight;
+        }
+
+        ctx.restore();
+      });
+
+      animationFrameId = requestAnimationFrame(render);
+    };
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        const wasVisible = isVisible;
+        isVisible = entry.isIntersecting;
+        if (isVisible && !wasVisible) {
+          render();
+        } else if (!isVisible) {
+          cancelAnimationFrame(animationFrameId);
+        }
+      },
+      { threshold: 0.01 }
+    );
+
+    observer.observe(canvas);
+
+    return () => {
+      window.removeEventListener('resize', handleResize);
+      cancelAnimationFrame(animationFrameId);
+      observer.disconnect();
+    };
+  }, []);
+
+  return (
+    <canvas
+      ref={canvasRef}
+      style={{
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        width: '100%',
+        height: '100%',
+        pointerEvents: 'none',
+        zIndex: 0,
+        filter: 'blur(1px)', // increased blur to make it softer and out-of-focus
+      }}
+    />
+  );
+};
+
+
 // SVG Icons
-const CodeLogoIcon = ({ size = 24, strokeWidth = 2, style = {} }: { size?: number; strokeWidth?: number; style?: React.CSSProperties }) => (
+const SailLogoIcon = ({ size = 24, style = {} }: { size?: number; style?: React.CSSProperties }) => (
   <svg 
     width={size} 
     height={size} 
-    viewBox="0 0 24 24" 
+    viewBox="0 0 100 100" 
     fill="none" 
-    stroke="var(--primary)" 
-    strokeWidth={strokeWidth} 
-    strokeLinecap="round" 
-    strokeLinejoin="round" 
+    xmlns="http://www.w3.org/2000/svg"
     style={style}
   >
-    <polyline points="16 18 22 12 16 6"></polyline>
-    <polyline points="8 6 2 12 8 18"></polyline>
-    <line x1="14" y1="4" x2="10" y2="20"></line>
+    {/* Left small sail */}
+    <path d="M48 20C40 45 25 65 25 75H48V20Z" fill="var(--primary)" opacity="0.65" />
+    {/* Right big sail */}
+    <path d="M52 20C62 45 75 65 75 75H52V20Z" fill="var(--primary)" />
   </svg>
 );
 
@@ -336,7 +671,7 @@ const GraduationCapIcon = () => (
 
 function App() {
   // Typewriter roles
-  const roles = ["Backend Intern", "Unity Developer", "Software Engineering Student", "AI & Agent Enthusiast"];
+  const roles = ["Backend Developer.", "Unity Developer.", "Software Engineering Student.", "AI & Agent Enthusiast."];
   const [roleText, setRoleText] = useState("");
   const [roleIndex, setRoleIndex] = useState(0);
   const [isDeleting, setIsDeleting] = useState(false);
@@ -405,7 +740,7 @@ function App() {
       <header className="navbar">
         <div className="nav-content">
           <div className="logo-group">
-            <CodeLogoIcon size={20} strokeWidth={2.5} style={{ marginRight: '8px', display: 'inline-block', verticalAlign: 'middle' }} />
+            <SailLogoIcon size={24} style={{ marginRight: '6px', display: 'inline-block', verticalAlign: 'middle' }} />
             <a href="#hero" className="logo-text">Andrew<span className="dot">.</span></a>
           </div>
           <nav className="nav-links">
@@ -428,19 +763,24 @@ function App() {
         <div className="hero-glow"></div>
         <FlowingLinesBackground />
         <div className="hero-content">
-          <CodeLogoIcon size={64} strokeWidth={1.5} style={{ marginBottom: '24px' }} />
-          <span className="welcome-tag">XIN CHÀO, TÔI LÀ NGUYỄN MẠNH QUYỀN</span>
+          <div className="hero-brand">
+            <SailLogoIcon size={36} style={{ marginRight: '10px' }} />
+            <span className="brand-name">Andrew</span>
+          </div>
+          <div className="tagline-container">
+            <span className="tagline-dynamic">{roleText}</span>
+            <span className="typewriter-cursor"></span>
+          </div>
           <h1 className="name-title">
             Sinh viên <span className="highlight-coral">IT</span>,<br />
             đam mê <span className="highlight-cyan">AI & Unity</span>.
           </h1>
-          <div className="role-container">
-            <span className="role-text">{roleText}</span>
-            <span className="typewriter-cursor"></span>
-          </div>
           <p className="hero-desc">
             Sinh viên năm 3 chuyên ngành Công nghệ phần mềm tại Đại học Xây dựng Hà Nội. 
             Đam mê thiết kế hệ thống backend hiệu năng cao, tự học công nghệ mới và xây dựng giải pháp tự động hóa bằng AI.
+          </p>
+          <p className="hero-subdesc">
+            (nếu bạn đang tìm kiếm một thực tập sinh chủ động và tự học tốt - tôi luôn sẵn sàng...)
           </p>
           <div className="cta-buttons">
             <a href="#play-zone" className="btn-primary">
@@ -597,6 +937,7 @@ function App() {
 
       {/* Projects Section */}
       <section id="projects" className="section">
+        <FloatingCodeBackground />
         <h2 className="section-title"><span>03.</span> Dự án thực tế</h2>
         
         <div className="glass-panel project-detail-card">
