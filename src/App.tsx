@@ -172,6 +172,109 @@ const FlowingLinesBackground: React.FC = () => {
   );
 };
 
+// Halftone 3D Ripple Wave Background Component - Optimized Dot Grid Waves
+const HalftoneWaveBackground: React.FC = () => {
+  const canvasRef = useRef<HTMLCanvasElement | null>(null);
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    let animationFrameId: number;
+    let width = (canvas.width = canvas.parentElement?.clientWidth || window.innerWidth);
+    let height = (canvas.height = canvas.parentElement?.clientHeight || window.innerHeight);
+
+    const handleResize = () => {
+      if (!canvas) return;
+      width = canvas.width = canvas.parentElement?.clientWidth || window.innerWidth;
+      height = canvas.height = canvas.parentElement?.clientHeight || window.innerHeight;
+    };
+    window.addEventListener('resize', handleResize);
+
+    const spacing = 28; // Spacing between dots
+    const levels = 5; // Halftone size levels
+    let time = 0;
+
+    const render = () => {
+      ctx.clearRect(0, 0, width, height);
+
+      const cols = Math.ceil(width / spacing) + 1;
+      const rows = Math.ceil(height / spacing) + 1;
+
+      // Group dots by size levels to draw them in batches (batching optimization)
+      const dotGroups: { px: number; py: number }[][] = Array.from({ length: levels }, () => []);
+
+      time += 0.04; // Animation wave speed
+
+      for (let r = 0; r < rows; r++) {
+        for (let c = 0; c < cols; c++) {
+          const x = c * spacing;
+          const y = r * spacing;
+
+          // Combined sine-cosine wave to create 3D surface illusion matching user image
+          const waveValue = (
+            Math.sin(x * 0.005 + y * 0.003 - time) + 
+            Math.cos(y * 0.006 + time * 0.8)
+          ) / 2;
+
+          const scale = (waveValue + 1) / 2; // Normalize to [0, 1]
+          const level = Math.max(0, Math.min(levels - 1, Math.floor(scale * levels)));
+
+          // Shift positions slightly to create the bended 3D wave lines
+          const px = x + waveValue * 8;
+          const py = y + waveValue * 12;
+
+          dotGroups[level].push({ px, py });
+        }
+      }
+
+      // Draw dot groups (only 5 fill calls per frame instead of thousands)
+      for (let l = 0; l < levels; l++) {
+        if (dotGroups[l].length === 0) continue;
+
+        ctx.beginPath();
+        const rx = 0.8 + (l / (levels - 1)) * 1.5; // X radius (thickness)
+        const ry = 1.2 + (l / (levels - 1)) * 2.8; // Y radius (stretched vertically like halftone style)
+
+        dotGroups[l].forEach(dot => {
+          ctx.moveTo(dot.px + rx, dot.py);
+          ctx.ellipse(dot.px, dot.py, rx, ry, 0, 0, Math.PI * 2);
+        });
+
+        // Use a subtle white dot color that matches the premium theme
+        ctx.fillStyle = `rgba(255, 255, 255, ${0.02 + (l / (levels - 1)) * 0.06})`;
+        ctx.fill();
+      }
+
+      animationFrameId = requestAnimationFrame(render);
+    };
+
+    render();
+
+    return () => {
+      window.removeEventListener('resize', handleResize);
+      cancelAnimationFrame(animationFrameId);
+    };
+  }, []);
+
+  return (
+    <canvas
+      ref={canvasRef}
+      style={{
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        width: '100%',
+        height: '100%',
+        pointerEvents: 'none',
+        zIndex: 0,
+      }}
+    />
+  );
+};
+
 // SVG Icons
 const CodeLogoIcon = ({ size = 24, strokeWidth = 2, style = {} }: { size?: number; strokeWidth?: number; style?: React.CSSProperties }) => (
   <svg 
@@ -429,6 +532,7 @@ function App() {
 
       {/* Skills Section */}
       <section id="skills" className="section">
+        <HalftoneWaveBackground />
         <h2 className="section-title"><span>02.</span> Kỹ năng chuyên môn</h2>
         <div className="grid-2">
           {/* Skill Groups Left */}
