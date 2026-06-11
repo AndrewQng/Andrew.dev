@@ -240,6 +240,17 @@ function App() {
   const [roleIndex, setRoleIndex] = useState(0);
   const [isDeleting, setIsDeleting] = useState(false);
   
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth <= 900);
+    };
+    handleResize();
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
   // Game Play Zone toggles
   const [activeTab, setActiveTab] = useState<'clicker' | 'unity'>('clicker');
   
@@ -600,110 +611,121 @@ function App() {
         </p>
 
         <div className="play-zone-container glass-panel">
-          {/* Tabs header */}
-          <div className="play-tabs">
-            <button 
-              className={`tab-btn ${activeTab === 'clicker' ? 'active' : ''}`}
-              onClick={() => setActiveTab('clicker')}
-            >
-              <TerminalIcon /> React Cyber Clicker (Demo có sẵn)
-            </button>
-            <button 
-              className={`tab-btn ${activeTab === 'unity' ? 'active' : ''}`}
-              onClick={() => setActiveTab('unity')}
-            >
-              <GamepadIcon /> Game Unity WebGL (Nơi upload game)
-            </button>
-          </div>
-
-          {/* Console Area */}
-          <div className="console-display">
-            {activeTab === 'clicker' ? (
-              <div className="clicker-game-screen">
-                <div className="clicker-header">
-                  <div className="terminal-dots">
-                    <span className="dot-red"></span>
-                    <span className="dot-yellow"></span>
-                    <span className="dot-green"></span>
-                  </div>
-                  <span className="console-title">CYBER_CODE_CLICKER.EXE</span>
-                  <span className="dev-rank">Cấp độ: {developerLevel}</span>
-                </div>
-
-                <div className="clicker-stats-grid">
-                  <div className="stat-box">
-                    <span className="stat-label">Lines of Code (LOC)</span>
-                    <span className="stat-val glow-text">{loc}</span>
-                  </div>
-                  <div className="stat-box">
-                    <span className="stat-label">AI Copilots</span>
-                    <span className="stat-val">{aiCopilots}</span>
-                  </div>
-                  <div className="stat-box">
-                    <span className="stat-label">Code / Click</span>
-                    <span className="stat-val">{clickPower} LOC</span>
-                  </div>
-                  <div className="stat-box">
-                    <span className="stat-label">Shipped Projects</span>
-                    <span className="stat-val glow-text-primary">{compiledProjects}</span>
-                  </div>
-                </div>
-
-                <div className="clicker-actions">
-                  <button className="btn-primary click-btn" onClick={handleCompileCode}>
-                    💻 COMPILE LINES OF CODE
-                  </button>
-                  <button className="btn-secondary" onClick={handleBuyCopilot}>
-                    🤖 Thuê AI Copilot (Giá: {Math.floor(10 + Math.pow(1.5, aiCopilots) * 10)} LOC)
-                  </button>
-                  <button className="btn-secondary" onClick={handleManualCompileProject}>
-                    🚀 Gửi Dự Án (Giá: 100 LOC)
-                  </button>
-                </div>
-
-                <div className="clicker-terminal">
-                  <div className="terminal-header">Nhật ký Biên dịch (Console Logs):</div>
-                  <div className="terminal-body">
-                    {gameLogs.map((log, index) => (
-                      <div key={index} className="log-line">
-                        <span className="log-prefix">&gt;</span> {log}
-                      </div>
-                    ))}
-                  </div>
-                </div>
+          {isMobile ? (
+            <div className="mobile-play-zone-fallback">
+              <GamepadIcon />
+              <h3>Khu vực chơi game không hỗ trợ di động</h3>
+              <p>Trải nghiệm chơi game (React Clicker & Unity WebGL) hiện không tương thích với màn hình di động hoặc thiết bị cảm ứng.</p>
+              <p className="fallback-note">Vui lòng truy cập trang web bằng máy tính (Desktop/Laptop) để trải nghiệm trò chơi!</p>
+            </div>
+          ) : (
+            <>
+              {/* Tabs header */}
+              <div className="play-tabs">
+                <button 
+                  className={`tab-btn ${activeTab === 'clicker' ? 'active' : ''}`}
+                  onClick={() => setActiveTab('clicker')}
+                >
+                  <TerminalIcon /> React Cyber Clicker (Demo có sẵn)
+                </button>
+                <button 
+                  className={`tab-btn ${activeTab === 'unity' ? 'active' : ''}`}
+                  onClick={() => setActiveTab('unity')}
+                >
+                  <GamepadIcon /> Game Unity WebGL (Nơi upload game)
+                </button>
               </div>
-            ) : (
-              <div className="unity-iframe-screen">
-                {/* Check if game is uploaded, else show mock UI / instructions */}
-                <div className="iframe-wrapper">
-                  <iframe 
-                    src="./unity-games/index.html" 
-                    title="Unity WebGL Game"
-                    className="unity-iframe"
-                    onError={() => console.log('Iframe failed to load')}
-                  />
-                  {/* Overlay instructions in case game doesn't exist yet */}
-                  <div className="unity-fallback-overlay">
-                    <div className="fallback-content">
-                      <GamepadIcon />
-                      <h3>KHU VỰC CHỜ GAME UNITY</h3>
-                      <p>Hiện tại chưa có game WebGL nào được upload lên website.</p>
-                      
-                      <div className="instructions-card">
-                        <h4>Hướng dẫn tải game lên dành cho Bạn:</h4>
-                        <ol>
-                          <li>Build game Unity dưới dạng <strong>WebGL</strong>.</li>
-                          <li>Tạo một thư mục trong project tại đường dẫn: <code>public/unity-games/</code>.</li>
-                          <li>Copy toàn bộ file build (bao gồm file <code>index.html</code> và các thư mục <code>Build</code>, <code>TemplateData</code>) vào thư mục đó.</li>
-                          <li>File game sẽ tự động được hiển thị tại khung này mà không cần build lại code website!</li>
-                        </ol>
+
+              {/* Console Area */}
+              <div className="console-display">
+                {activeTab === 'clicker' ? (
+                  <div className="clicker-game-screen">
+                    <div className="clicker-header">
+                      <div className="terminal-dots">
+                        <span className="dot-red"></span>
+                        <span className="dot-yellow"></span>
+                        <span className="dot-green"></span>
+                      </div>
+                      <span className="console-title">CYBER_CODE_CLICKER.EXE</span>
+                      <span className="dev-rank">Cấp độ: {developerLevel}</span>
+                    </div>
+
+                    <div className="clicker-stats-grid">
+                      <div className="stat-box">
+                        <span className="stat-label">Lines of Code (LOC)</span>
+                        <span className="stat-val glow-text">{loc}</span>
+                      </div>
+                      <div className="stat-box">
+                        <span className="stat-label">AI Copilots</span>
+                        <span className="stat-val">{aiCopilots}</span>
+                      </div>
+                      <div className="stat-box">
+                        <span className="stat-label">Code / Click</span>
+                        <span className="stat-val">{clickPower} LOC</span>
+                      </div>
+                      <div className="stat-box">
+                        <span className="stat-label">Shipped Projects</span>
+                        <span className="stat-val glow-text-primary">{compiledProjects}</span>
+                      </div>
+                    </div>
+
+                    <div className="clicker-actions">
+                      <button className="btn-primary click-btn" onClick={handleCompileCode}>
+                        💻 COMPILE LINES OF CODE
+                      </button>
+                      <button className="btn-secondary" onClick={handleBuyCopilot}>
+                        🤖 Thuê AI Copilot (Giá: {Math.floor(10 + Math.pow(1.5, aiCopilots) * 10)} LOC)
+                      </button>
+                      <button className="btn-secondary" onClick={handleManualCompileProject}>
+                        🚀 Gửi Dự Án (Giá: 100 LOC)
+                      </button>
+                    </div>
+
+                    <div className="clicker-terminal">
+                      <div className="terminal-header">Nhật ký Biên dịch (Console Logs):</div>
+                      <div className="terminal-body">
+                        {gameLogs.map((log, index) => (
+                          <div key={index} className="log-line">
+                            <span className="log-prefix">&gt;</span> {log}
+                          </div>
+                        ))}
                       </div>
                     </div>
                   </div>
-                </div>
+                ) : (
+                  <div className="unity-iframe-screen">
+                    {/* Check if game is uploaded, else show mock UI / instructions */}
+                    <div className="iframe-wrapper">
+                      <iframe 
+                        src="./unity-games/index.html" 
+                        title="Unity WebGL Game"
+                        className="unity-iframe"
+                        onError={() => console.log('Iframe failed to load')}
+                      />
+                      {/* Overlay instructions in case game doesn't exist yet */}
+                      <div className="unity-fallback-overlay">
+                        <div className="fallback-content">
+                          <GamepadIcon />
+                          <h3>KHU VỰC CHỜ GAME UNITY</h3>
+                          <p>Hiện tại chưa có game WebGL nào được upload lên website.</p>
+                          
+                          <div className="instructions-card">
+                            <h4>Hướng dẫn tải game lên dành cho Bạn:</h4>
+                            <ol>
+                              <li>Build game Unity dưới dạng <strong>WebGL</strong>.</li>
+                              <li>Tạo một thư mục trong project tại đường dẫn: <code>public/unity-games/</code>.</li>
+                              <li>Copy toàn bộ file build (bao gồm file <code>index.html</code> và các thư mục <code>Build</code>, <code>TemplateData</code>) vào thư mục đó.</li>
+                              <li>File game sẽ tự động được hiển thị tại khung này mà không cần build lại code website!</li>
+                            </ol>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
-            )}
-          </div>
+            </>
+          )}
         </div>
       </section>
 
