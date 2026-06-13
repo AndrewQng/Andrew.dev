@@ -73,7 +73,7 @@ const FlowingLinesBackground: React.FC = () => {
           fiber.prevY = fiber.y;
 
           const angle = (
-            Math.sin(fiber.x * 0.002 + time * 2) * 1.2 + 
+            Math.sin(fiber.x * 0.002 + time * 2) * 1.2 +
             Math.cos(fiber.y * 0.003 - time) * 1.5
           ) * Math.PI;
 
@@ -130,7 +130,7 @@ const FlowingLinesBackground: React.FC = () => {
         // Flow field vector math:
         // Combined overlapping wave frequencies to create curved wind/hair currents
         const angle = (
-          Math.sin(fiber.x * 0.002 + time * 2) * 1.2 + 
+          Math.sin(fiber.x * 0.002 + time * 2) * 1.2 +
           Math.cos(fiber.y * 0.003 - time) * 1.5
         ) * Math.PI;
 
@@ -247,7 +247,7 @@ const HalftoneWaveBackground: React.FC = () => {
 
           // Combined sine-cosine wave to create 3D surface illusion matching user image
           const waveValue = (
-            Math.sin(x * 0.005 + y * 0.003 - time) + 
+            Math.sin(x * 0.005 + y * 0.003 - time) +
             Math.cos(y * 0.006 + time * 0.8)
           ) / 2;
 
@@ -512,14 +512,14 @@ const FloatingCodeBackground: React.FC = () => {
         if (width < 950 && idx === 1) return;
 
         const file = codeFiles[editor.fileIndex];
-        
+
         // Update typing logic
         if (editor.isDelaying) {
           editor.delayCounter++;
           if (editor.delayCounter >= editor.delayLimit) {
             editor.isDelaying = false;
             editor.delayCounter = 0;
-            
+
             // If file fully typed, load another random one continuously (without clearing screen history!)
             if (editor.currentLineIndex >= file.lines.length) {
               editor.fileIndex = (editor.fileIndex + 1) % codeFiles.length;
@@ -547,7 +547,7 @@ const FloatingCodeBackground: React.FC = () => {
               if (editor.typedLines.length > 20) {
                 editor.typedLines.shift(); // keep memory clean
               }
-              
+
               // Set scroll offset to translate text down, then we will lerp it back to 0
               editor.offsetY = lineHeight;
 
@@ -657,11 +657,11 @@ const FloatingCodeBackground: React.FC = () => {
 
 // SVG Icons
 const SailLogoIcon = ({ size = 24, style = {} }: { size?: number; style?: React.CSSProperties }) => (
-  <svg 
-    width={size} 
-    height={size} 
-    viewBox="0 0 100 100" 
-    fill="none" 
+  <svg
+    width={size}
+    height={size}
+    viewBox="0 0 100 100"
+    fill="none"
     xmlns="http://www.w3.org/2000/svg"
     style={style}
   >
@@ -725,7 +725,7 @@ function App() {
   const [roleText, setRoleText] = useState("");
   const [roleIndex, setRoleIndex] = useState(0);
   const [isDeleting, setIsDeleting] = useState(false);
-  
+
   const [isMobile, setIsMobile] = useState(false);
 
   useEffect(() => {
@@ -738,7 +738,7 @@ function App() {
   }, []);
 
 
-  
+
 
 
   // Typewriter animation logic
@@ -811,7 +811,7 @@ function App() {
             đam mê <span className="highlight-cyan">AI & Unity</span>.
           </h1>
           <p className="hero-desc">
-            Sinh viên năm 3 chuyên ngành Công nghệ phần mềm tại Đại học Xây dựng Hà Nội. 
+            Sinh viên năm 3 chuyên ngành Công nghệ phần mềm tại Đại học Xây dựng Hà Nội.
             Đam mê thiết kế hệ thống backend hiệu năng cao, tự học công nghệ mới và xây dựng giải pháp tự động hóa bằng AI.
           </p>
           <p className="hero-subdesc">
@@ -867,7 +867,7 @@ function App() {
                 <MailIcon />
                 <div>
                   <strong>Email:</strong>
-                  <a href="mailto:nguyenquyenforwork@gmail.com">nguyenquyenforwork@gmail.com</a>
+                  <a href="mailto:nguyenquyenjobsite@gmail.com">nguyenquyenjobsite@gmail.com</a>
                 </div>
               </li>
               <li>
@@ -886,7 +886,7 @@ function App() {
               </li>
             </ul>
             <p className="about-bio">
-              Có thế mạnh đặc biệt về tư duy phân tích hệ thống, khả năng tự học tốt và thói quen làm việc độc lập. 
+              Có thế mạnh đặc biệt về tư duy phân tích hệ thống, khả năng tự học tốt và thói quen làm việc độc lập.
               Tôi luôn chủ động áp dụng các trợ lý AI và Agent skills vào quy trình phát triển để tối ưu hóa năng suất lập trình.
             </p>
           </div>
@@ -902,7 +902,7 @@ function App() {
                 <p className="edu-desc">Sinh viên năm 3, tích lũy kiến thức nền tảng vững vàng về OOP, cấu trúc dữ liệu, thuật toán và quy trình sản xuất phần mềm.</p>
               </div>
             </div>
-            
+
             <div className="cv-download-box">
               <p>Muốn tìm hiểu chi tiết hơn về kỹ năng & định hướng công việc của tôi?</p>
               <a href="./cv.pdf" target="_blank" rel="noopener noreferrer" className="btn-primary">Tải CV (Bản đầy đủ)</a>
@@ -981,16 +981,16 @@ function App() {
       <section id="projects" className="section">
         <FloatingCodeBackground />
         <h2 className="section-title"><span>03.</span> Dự án thực tế</h2>
-        
+
         <div className="glass-panel project-detail-card">
           <div className="project-badge">Dự án tiêu biểu</div>
           <div className="project-header">
             <h3>Website Bán Hàng Trực Tuyến Ecommerce (Đồ Thể Thao)</h3>
             <span className="project-date">02/2026 - 05/2026</span>
           </div>
-          
+
           <p className="project-brief">
-            Phát triển ứng dụng thương mại điện tử Full-stack theo mô hình Monolith, tối ưu hóa quy trình đặt hàng, 
+            Phát triển ứng dụng thương mại điện tử Full-stack theo mô hình Monolith, tối ưu hóa quy trình đặt hàng,
             bảo mật người dùng và tích hợp trí tuệ nhân tạo tư vấn khách hàng trực tiếp.
           </p>
 
@@ -1041,8 +1041,8 @@ function App() {
               <div className="unity-iframe-screen">
                 {/* Check if game is uploaded, else show mock UI / instructions */}
                 <div className="iframe-wrapper">
-                  <iframe 
-                    src="./unity-games/index.html" 
+                  <iframe
+                    src="./unity-games/index.html"
                     title="Unity WebGL Game"
                     className="unity-iframe"
                     onError={() => console.log('Iframe failed to load')}
@@ -1053,7 +1053,7 @@ function App() {
                       <GamepadIcon />
                       <h3>KHU VỰC CHỜ GAME UNITY</h3>
                       <p>Hiện tại chưa có game WebGL nào được upload lên website.</p>
-                      
+
                     </div>
                   </div>
                 </div>
